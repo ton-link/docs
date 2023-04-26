@@ -3,6 +3,12 @@
 </div>
 
 - [Introduction](#introduction)
+  - [How it works?](#hiw)
+    - [Create job](#hiw-cj)
+    - [Job structure](#hiw-js)
+    - [How nodes sends a response to the oracle?](#hiw-sro)
+    - [How a smart contract gets an answer from an oracle?](#hiw-src)
+    - [Diagram](#hiw-d)
   - [Deploy oracle](#deploy)
     - [Oracle with TON](#native)
     - [Oracle with custom token](#custom)
@@ -14,9 +20,90 @@
 <a name="introduction"></a>
 # Introduction
 TON Link is a blockchain oracle based on the TON blockchain. It is an algorithm that transfers data between a smart contract and an external data source outside the TON network. Essentially, the oracle serves as an intermediary between the contract and the required data source.
-![](https://user-images.githubusercontent.com/86096361/234314944-6232339d-f993-45f4-b674-1d8b41841017.png)
 
-When the oracle receives a new transaction, it collects and organizes the payload and creates a job. Once the job is created, the nodes check the job, get the information from the link in the job, and send their answer. There are a total of 5 answers and the median value among them is taken as the result. After the nodes have sent their answers and the median value has been chosen, nodes that have sent a result with a deviation of more than 20% are penalized. When the task is complete, the oracle sends the response to the user smart contract as a payload (the payload includes the information required by the user smart contract, the number of Toncoins sent, and the data from the specified link).
+<a name="hiw"></a>
+# How it works?
+<a name="hiw-cj"></a>
+## Create job
+When some contract wants information from the real world it must use an oracle to get data. 
+In our case the contract has to send a message consisting of the operation code, the information needed by the contract and the link to get the data.
+Example of a transaction to retrieve data from a link:
+```
+var msg_body = begin_cell()
+  .store_uint(50, 32) ;; operation code to create a job
+  .store_uint(0, 64)
+  .store_ref(orig_msg) ;; information needed by the contract
+  .store_ref(link) ;; link
+ .end_cell();
+```
+
+When oracle receives a new transaction with op-code 40, it runs the [`job::create`](https://github.com/ton-link/ton-link-contract-v3/blob/d182670c159e41ae943949ad939b6aa99aa0da1c/typescript/source/NativeOracle/lib/job.func#L112) function. This function performs certain functions:
+1. Checks the number of TONs sent, 
+2. Generates a new array of addresses - this array stores addresses of nodes which will send the response,
+3. Creates job structure.
+
+After completing this function, the job was created and any wallet can get information about it using the [`get_job_by_jobid`](https://github.com/ton-link/ton-link-contract-v3/blob/d182670c159e41ae943949ad939b6aa99aa0da1c/typescript/source/NativeOracle/lib/get.func#L1) method.
+
+<a name="hiw-js"></a>
+## Job structure
+Job is a certain structure consisting of several fields:
+
+1. jobId (uint64) - sequence number
+2. start (uint64) - job creation time
+3. end (uint64) - job completion time
+4. status (uint1) - job status (completed / not completed)
+5  content (cell) - cell that stores the link that the smart-contract sent
+6. address (cell) - cell that stores the list of addresses of the nodes that should send the information  
+7. info (cell) - cell that stores information to be sent back to the smart-contract (original sender, original time, original msg_value, original msg_body)
+8. result (cell) - cell that stores the results that the nodes received by the link
+
+More information about the structure of the work can be found in this [file](https://github.com/ton-link/ton-link-contract-v3/blob/native-token-oracle/typescript/source/NativeOracle/lib/job.md)
+
+<a name="hiw-sro"></a>
+## How nodes sends a response to the oracle?
+
+Each node listens to [`get_job_by_jobid`](https://github.com/ton-link/ton-link-contract-v3/blob/d182670c159e41ae943949ad939b6aa99aa0da1c/typescript/source/NativeOracle/lib/get.func#L1) method and reads each job. If a node finds its address in the address list, it executes:
+1. Parses the job and writes a link to a local database (also writes the job number so you don't send the results of the same job)
+2. Gets information from the link
+3. Creates a new transaction with the body:
+```
+var msg_body = begin_cell()
+  .store_uint(160, 32) ;; operation code to add result to job
+  .store_uint(0, 64)
+  .store_uint(jobID, 64) 
+  .store_uint(result, 64) ;; result at the link
+.end_cell();
+```
+
+This message starts the [`job::add`](https://github.com/ton-link/ton-link-contract-v3/blob/d182670c159e41ae943949ad939b6aa99aa0da1c/typescript/source/NativeOracle/lib/job.func#L464) function. This function checks:
+1. Job status. 
+2. Whether the node address is in the lists for the job
+3. Whether the time has not expired
+4. Whether this node has already responded
+
+If a nodes fails to respond on time, she is penalized. If all check items are passed, then the function [`job::add_result`](https://github.com/ton-link/ton-link-contract-v3/blob/d182670c159e41ae943949ad939b6aa99aa0da1c/typescript/source/NativeOracle/lib/job.func#L479) is started.
+
+<a name="hiw-src"></a>
+## How a smart contract gets an answer from an oracle?
+
+When the runtime expires or the number of answers equals 5, the function [`job::complete_job`](https://github.com/ton-link/ton-link-contract-v3/blob/d182670c159e41ae943949ad939b6aa99aa0da1c/typescript/source/NativeOracle/lib/job.func#L267) is started, which completes the job and looks for the median value that will eventually become the response of the oracle. 
+
+After that, a new transaction is created with the body:
+```
+var msg_body = begin_cell()
+  .store_slice(original_sender)
+  .store_uint(now(), 64)
+  .store_grams(original_msg_value)
+  .store_ref(begin_cell().store_slice(original_msg_body).end_cell())
+  .store_uint(jobID, 64)
+  .store_uint(result, 64)
+.end_cell();
+```
+After sending this message the work of the oracle ends.
+
+<a name="hiw-d"></a>
+## Diagram
+![](https://user-images.githubusercontent.com/86096361/234314944-6232339d-f993-45f4-b674-1d8b41841017.png)
 
 <a name="deploy"></a>
 # Deploy oracle
