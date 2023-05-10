@@ -12,10 +12,11 @@
   - [Deploy oracle](#deploy)
     - [Oracle with TON](#native)
     - [Oracle with custom token](#custom)
-  - [Registration](#registration)
-  - [Run Node](#run)
-    - [Manual](#manual)
-    - [Automatic](#automatic)
+  - [How to join?](#join)
+    - [Registration](#registration)
+    - [Run Node](#run)
+      - [Manual](#manual)
+      - [Automatic](#automatic)
 
 <a name="introduction"></a>
 # Introduction
@@ -134,16 +135,27 @@ TON Link has two different kinds of oracle:
 5. To deploy the oracle, send two transactions:
    - Transaction 1: Deploy the contract. In the `scripts/deployCustomTokenOracle.ts file`, comment out line 105. Then, run the command `npm run deployCustomTokenOracle`. The console will display the oracle address, which is also duplicated in the oracle.txt file. Wait for the transaction to complete (check the explorer). If the transaction fails, don't worry, this is normal.
    - Transaction 2: Change the token wallet address. In the `scripts/deployCustomTokenOracle.ts` file, comment out line 104 and uncomment line 105. Run the command `npm run deployCustomTokenOracle` again. Check the explorer; the new transaction should succeed without errors. To verify that everything is correct, go back to the scripts/deployCustomTokenOracle.ts file and comment out line 105. Run the npm run deploy command again and wait. The last thing that should appear in the console is the word "true." If so, congratulations, you have deployed your oracle.
-
+<a name="join"></a>
+# How to join?
+To join TON Link you need to follow 2 steps:
+1. [Register a wallet in the system](#registration)
+2. [Run a node](#run)
 <a name="registration"></a>
-# Registration
-Will be updated
+## Registration
+To register in the TON Link system you need to go to https://tonlink.xyz/ and follow a number of simple steps:
+1. Connect a wallet via TON Connect v2 or Tonhub Connect
+<img width="828" alt="image" src="https://github.com/ton-link/docs/assets/86096361/4c15b119-8eca-45a4-9379-de55c560c732">
+2. To register you need to send 30 TON to the wallet oracle. You need to scan the QR-code with your wallet
+<img width="828" alt="image" src="https://github.com/ton-link/docs/assets/86096361/f549e431-612e-4e4a-9c32-e85973abbafa">
+3. After registering you will see the main menu:
+<img width="1324" alt="image" src="https://github.com/ton-link/docs/assets/86096361/39212173-280d-411f-b323-ff557396691d">
+After that you can move on to configuring the node and running it.
 
 <a name="run"></a>
-# Run Node
+## Run Node
 You can run the node in two different modes: manual (you will perform all the setup and deployment actions yourself) or automatic (using Docker).
 <a name="manual"></a>
-## Manual deployment
+### Manual deployment
 1. Clone the repository: `git clone https://github.com/ton-link/ton-link-node-v3.git`
 2. Go to the `ton-link-node-v3/client` folder and install the necessary packages with the `npm install` 
 3. You need to install PostgreSQL (>= 11.x) for the node to work.
@@ -162,7 +174,7 @@ You can run the node in two different modes: manual (you will perform all the se
 6. Move the `.env` file to the client folder.
 7. After successful registration you need to run the node with the command: `node client/client`
 <a name="automatic"></a>
-## Automatic deployment
+### Automatic deployment
 1. In the ton-link-node-v3 folder, there is a `.env.example` file that you need to rename to `.env` and modify the fields:
    - SEED: Your seed phrase for wallet access
    - MYADDRESS: The address of your account, which should be a node
