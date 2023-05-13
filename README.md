@@ -9,9 +9,10 @@
     - [How nodes sends a response to the oracle?](#hiw-sro)
     - [How a smart contract gets an answer from an oracle?](#hiw-src)
     - [Diagram](#hiw-d)
-  - [Deploy oracle](#deploy)
+  - [Deploying your own oracle](#deploy)
     - [Oracle with TON](#native)
     - [Oracle with custom token](#custom)
+  - [How do I make a request to the oracle?](#rto)
   - [How to join?](#join)
     - [Registration](#registration)
     - [Run Node](#run)
@@ -107,7 +108,7 @@ After sending this message the work of the oracle ends.
 ![](https://user-images.githubusercontent.com/86096361/234314944-6232339d-f993-45f4-b674-1d8b41841017.png)
 
 <a name="deploy"></a>
-# Deploy oracle
+# Deploying your own oracle
 TON Link has two different kinds of oracle:
 1. Oracle based on TON - uses TON to pay requests and payments to nodes
 2. Oracle based on custom token - uses custom token to pay requests and payment to nodes
@@ -135,6 +136,60 @@ TON Link has two different kinds of oracle:
 5. To deploy the oracle, send two transactions:
    - Transaction 1: Deploy the contract. In the `scripts/deployCustomTokenOracle.ts file`, comment out line 105. Then, run the command `npm run deployCustomTokenOracle`. The console will display the oracle address, which is also duplicated in the oracle.txt file. Wait for the transaction to complete (check the explorer). If the transaction fails, don't worry, this is normal.
    - Transaction 2: Change the token wallet address. In the `scripts/deployCustomTokenOracle.ts` file, comment out line 104 and uncomment line 105. Run the command `npm run deployCustomTokenOracle` again. Check the explorer; the new transaction should succeed without errors. To verify that everything is correct, go back to the scripts/deployCustomTokenOracle.ts file and comment out line 105. Run the npm run deploy command again and wait. The last thing that should appear in the console is the word "true." If so, congratulations, you have deployed your oracle.
+
+<a name="rto"></a>
+# How do I make a request to the oracle?
+When you want to get data from a link from an oracle you need to do a few steps:
+1. Send a message to [create a job](#hiw-cj) with the right link and data that the smart contract needs.
+2. Create a hook to get answers from the oracle.
+
+Message for creating a new job:
+```
+var msg_body = begin_cell()
+  .store_uint(50, 32) ;; operation code to create a job
+  .store_uint(0, 64)
+  .store_ref(orig_msg) ;; information needed by the contract
+  .store_ref(link) ;; link
+ .end_cell();
+```
+
+Example of a smart-contract to retrieve data from an oracle:
+```
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+          slice ds = get_data().begin_parse();
+          slice oracle_address = ds~load_msg_addr();
+          
+          slice sender_address = utils::parse_sender_address(in_msg_full);
+          
+          if(equal_slices(sender_address, oracle_address)){
+                 slice original_sender = in_msg_body~load_msg_addr();
+                 int original_time = in_msg_body~load_uint(64);
+                 int original_msg_value = in_msg_body~load_grams();
+                 slice original_msg_body = (in_msg_body~load_ref()).begin_parse()
+                 int jobID = in_msg_body~load_uint(64);
+                 int result = in_msg_body~load_uint(64);
+          } else {
+                 cell link = ds~load_ref(); ;; https://github.com/ton-link/ton-link-contract-v3/blob/main/typescript/source/lib/link-format.md
+                 var msg_body = begin_cell()
+                        .store_uint(50, 32)
+                        .store_uint(0, 64)
+                        .store_ref(in_msg_body)
+                        .store_ref(link)
+                 .end_cell();
+
+                 var msg = begin_cell()
+                        .store_uint(0x18, 6)
+                        .store_slice(oracle_address)
+                        .store_grams(600000000)
+                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                        .store_ref(msg_body)
+                 .end_cell();
+                 send_raw_message(msg, 3);
+          }
+          return ();
+}
+```
+
 <a name="join"></a>
 # How to join?
 To join TON Link you need to follow 2 steps:
