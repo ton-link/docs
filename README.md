@@ -6,10 +6,10 @@
 # Introduction
 TON Link is a blockchain oracle based on the TON blockchain. It is an algorithm that transfers data between a smart contract and an external data source outside the TON network. Essentially, the oracle serves as an intermediary between the contract and the required data source.
 
-<a name="agenda"></a>
-# Agenda
+<a name="contents"></a>
+# Table of contents
 1. [Introduction](#introduction)
-2. [Agenda](#agenda)
+2. [Table of contents](#contents)
 3. [Use Cases](#usecases)
 4. [Deploying your own oracle](#deploy)
    1. [TON](#native)
