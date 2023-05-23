@@ -10,7 +10,7 @@ TON Link is a blockchain oracle based on the TON blockchain. It is an algorithm 
 # Agenda
 1. [Introduction](#introduction)
 2. [Agenda](#agenda)
-3. [Cases](#cases)
+3. [Use Cases](#usecases)
 4. [Deploying your own oracle](#deploy)
    1. [TON](#native)
    2. [Jetton](#jetton)
@@ -28,8 +28,8 @@ TON Link is a blockchain oracle based on the TON blockchain. It is an algorithm 
    6. [How do I make a request to the oracle?](#rto)
 
 <a name="usecases"></a>
-# Cases
-asdajndkjada
+# Use Cases
+TON Link will help developers get real-world data into their smart contracts with a simple transaction. How to do this is described in [section](#rto)
 <a name="deploy"></a>
 # Deploying your own oracle
 TON Link has two different kinds of oracle:
@@ -70,10 +70,13 @@ To join TON Link you need to follow 2 steps:
 To register in the TON Link system you need to go to https://tonlink.xyz/ (or locally frontend) and follow a number of simple steps:
 1. Connect a wallet via TON Connect v2 or Tonhub Connect
 <img width="828" alt="image" src="https://github.com/ton-link/docs/assets/86096361/4c15b119-8eca-45a4-9379-de55c560c732">
+
 2. To register you need to send 30 TON (or you stake amount) to the wallet oracle. You need to scan the QR-code with your wallet
 <img width="828" alt="image" src="https://github.com/ton-link/docs/assets/86096361/f549e431-612e-4e4a-9c32-e85973abbafa">
+
 3. After registering you will see the main menu:
 <img width="1324" alt="image" src="https://github.com/ton-link/docs/assets/86096361/39212173-280d-411f-b323-ff557396691d">
+
 After that you can move on to configuring the node and running it.
 
 <a name="run"></a>
@@ -96,7 +99,7 @@ You can run the node in two different modes: manual (you will perform all the se
    - TONCENTERKEY: The API access key (if using TON Center, you can obtain the key: for mainnet @tonapibot, for testnet @tontestnetapibot)
    - DATABASE_URL: The database URL in the format postgresql://tonlink:password@your_local_ip_address:5432/tonlink_db
    - WALLET_V: Your wallet version (enter in the format v3R2)
-   - STAKE_AMOUNT: 
+   - STAKE_AMOUNT: Value equal to the minimum stake in the oracle
 6. Run `move.sh`
 7. After successful registration you need to run the node with the command: `node client/client`
 <a name="automatic"></a>
@@ -110,7 +113,7 @@ You can run the node in two different modes: manual (you will perform all the se
    - TONCENTERKEY: The API access key (if using TON Center, you can obtain the key: for mainnet @tonapibot, for testnet @tontestnetapibot)
    - DATABASE_URL: The database URL in the format postgresql://tonlink:password@your_local_ip_address:5432/tonlink_db
    - WALLET_V: Your wallet version (enter in the format v3R2)
-   - STAKE_AMOUNT: 
+   - STAKE_AMOUNT: Value equal to the minimum stake in the oracle
 2. Run `move.sh`
 3. Open the terminal at the folder address and run the command `docker-compose build`, then wait for it to complete.
 4. After successful registration, you need to start the node with the command: `docker-compose up`
