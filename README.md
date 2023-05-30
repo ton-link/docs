@@ -91,7 +91,7 @@ When some contract wants information from the real world it must send the oracle
 
 TON Link allows you to save the information you need even if you make a query to an oracle.
 
-For example, you need to get the data of the transaction that initiated the request to the oracle. To do this you can write the information you need in the cell [```orig_msg```](https://github.com/ton-link/docs/tree/new-doc/README.md#102), and when processing the response from the oracle you can access the data from the original transaction.
+For example, you need to get the data of the transaction that initiated the request to the oracle. To do this you can write the information you need in the cell ```orig_msg```, and when processing the response from the oracle you can access the data from the original transaction.
 
 
 Example of a transaction to retrieve data from a link:
