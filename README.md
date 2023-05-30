@@ -42,7 +42,6 @@ TON Link deployed oracle contracts:
 
 Example of a transaction to retrieve data from a link:
 ```
-
 var msg_body = begin_cell()
   .store_uint(50, 32) ;; operation code to create a job
   .store_uint(0, 64)
@@ -68,7 +67,6 @@ In order to process the response you need to check the sender for each incoming 
 
 Example code for handling the response:
 ```
-
 if(equal_slices(sender_address, oracle_address)){
    slice original_sender = in_msg_body~load_msg_addr();
    int original_time = in_msg_body~load_uint(64);
@@ -93,7 +91,7 @@ When some contract wants information from the real world it must send the oracle
 
 TON Link allows you to save the information you need even if you make a query to an oracle.
 
-For example, you need to get the data of the transaction that initiated the request to the oracle. To do this you can write the information you need in the cell [```orig_msg```](), and when processing the response from the oracle you can access the data from the original transaction.
+For example, you need to get the data of the transaction that initiated the request to the oracle. To do this you can write the information you need in the cell [```orig_msg```](https://github.com/ton-link/docs/tree/new-doc/README.md#102), and when processing the response from the oracle you can access the data from the original transaction.
 
 
 Example of a transaction to retrieve data from a link:
