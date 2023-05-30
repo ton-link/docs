@@ -13,7 +13,6 @@ TON Link is a blockchain oracle based on the TON blockchain. It is an algorithm 
 1. [Quickstart using deployed TON Link oracle](#quickstart)
     1. Sending a request
     2. Handling the response
-    3. Join TON Link by hosting a node
 2. [How oracle works?](#hiw)
    1. [Create job](#hiw-cj)
    2. [Job structure](#hiw-js)
