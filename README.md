@@ -11,8 +11,8 @@ TON Link is a blockchain oracle based on the TON blockchain. It is an algorithm 
 <a name="contents"></a>
 # Table of contents
 1. [Quickstart using deployed TON Link oracle](#quickstart)
-    1. Sending a request
-    2. Handling the response
+    1. [Sending a request](#send)
+    2. [Handling the response](#hand)
 2. [How oracle works?](#hiw)
    1. [Create job](#hiw-cj)
    2. [Job structure](#hiw-js)
@@ -37,24 +37,47 @@ TON Link deployed oracle contracts:
 - Testnet [ADDRESS](https:// "link to tonscan")
 - Mainnet [ADDRESS](https:// "link to tonscan")
 
+<a name="send"></a>
 ### Sending a request
 
 Example of a transaction to retrieve data from a link:
 ```
-TODO: Нужно пример кода всего сообщения (не только msg_body)
+
 var msg_body = begin_cell()
   .store_uint(50, 32) ;; operation code to create a job
   .store_uint(0, 64)
   .store_ref(orig_msg) ;; information needed by the contract
   .store_ref(link) ;; link
- .end_cell();
+.end_cell();
+var msg = begin_cell()
+   .store_uint(0x18, 6)
+   .store_slice(oracle_address)
+   .store_grams(600000000)
+   .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+   .store_ref(msg_body)
+.end_cell();
+send_raw_message(msg, 3);
 ```
 
 You can read more information in the section [How do I make a request to the oracle](#rto).
 
+<a name="hand"></a>
 ### Handling the response
 
-TODO
+In order to process the response you need to check the sender for each incoming message. If the sender of the message is an oracle then you need to check their op-code and start parsing the incoming message.
+
+Example code for handling the response:
+```
+
+if(equal_slices(sender_address, oracle_address)){
+   slice original_sender = in_msg_body~load_msg_addr();
+   int original_time = in_msg_body~load_uint(64);
+   int original_msg_value = in_msg_body~load_grams();
+   slice original_msg_body = (in_msg_body~load_ref()).begin_parse()
+   int jobID = in_msg_body~load_uint(64);
+   int result = in_msg_body~load_uint(64);
+}
+```
 
 ### Join TON Link by hosting a node
 
@@ -68,8 +91,10 @@ Currently there are X nodes that are performing requests to the desired source o
 ## Create job
 When some contract wants information from the real world it must send the oracle a message that has **the operation code**, **the information needed by the contract** and **the link to get the data**.
 
-TODO: 
-- Описать что такое **the information needed by the contract**
+TON Link allows you to save the information you need even if you make a query to an oracle.
+
+For example, you need to get the data of the transaction that initiated the request to the oracle. To do this you can write the information you need in the cell [```orig_msg```](), and when processing the response from the oracle you can access the data from the original transaction.
+
 
 Example of a transaction to retrieve data from a link:
 ```
@@ -161,46 +186,7 @@ var msg_body = begin_cell()
  .end_cell();
 ```
 
-Example of a smart-contract to retrieve data from an oracle:
-
-TODO:
-- сюда не нужно этот код контракта, просто достаточно дать на него ссылку со словами "попробую сам задеплоить этот контракт"
-- тут должен быть код просто сборки сообщения полного
-```
-() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
-          slice ds = get_data().begin_parse();
-          slice oracle_address = ds~load_msg_addr();
-          
-          slice sender_address = utils::parse_sender_address(in_msg_full);
-          
-          if(equal_slices(sender_address, oracle_address)){
-                 slice original_sender = in_msg_body~load_msg_addr();
-                 int original_time = in_msg_body~load_uint(64);
-                 int original_msg_value = in_msg_body~load_grams();
-                 slice original_msg_body = (in_msg_body~load_ref()).begin_parse()
-                 int jobID = in_msg_body~load_uint(64);
-                 int result = in_msg_body~load_uint(64);
-          } else {
-                 cell link = ds~load_ref(); ;; https://github.com/ton-link/ton-link-contract-v3/blob/main/typescript/source/lib/link-format.md
-                 var msg_body = begin_cell()
-                        .store_uint(50, 32)
-                        .store_uint(0, 64)
-                        .store_ref(in_msg_body)
-                        .store_ref(link)
-                 .end_cell();
-
-                 var msg = begin_cell()
-                        .store_uint(0x18, 6)
-                        .store_slice(oracle_address)
-                        .store_grams(600000000)
-                        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                        .store_ref(msg_body)
-                 .end_cell();
-                 send_raw_message(msg, 3);
-          }
-          return ();
-}
-```
+Try deploying a smart contract yourself to retrieve data from the oracle. An example of a smart contract can be found [here](https://github.com/ton-link/docs/tree/new-doc/sample.func).
 
 
 <a name="join"></a>
@@ -264,16 +250,15 @@ You can run the node in two different modes: manual (you will perform all the se
 
 <a name="deploy"></a>
 # Deploying your own oracle
-TON Link has two different kinds of oracle:
+
+To deploy your oracle you need:
+1. Deploy the oracle smart-contract
+2. Launch at least 5 nodes and connect them to your oracle
+
+When you decide to deploy an oracle smart contract you will need to decide which system it will run on. There are currently 2 types of oracle:
 1. Oracle based on TON - uses TON to pay requests and payments to nodes
 2. Oracle based on custom token - uses custom token to pay requests and payment to nodes
 
-TODO:
-
-Чтобы задеплоить свой оракл, вам необходимо:
-- задеплоить контракт
-- поднять минимум 5 нод
-- задеплоить фронт
 
 <a name="native"></a>
 ## Oracle based on TON
