@@ -45,7 +45,7 @@ Example of a transaction to retrieve data from a link:
 var msg_body = begin_cell()
   .store_uint(50, 32) ;; operation code to create a job
   .store_uint(0, 64)
-  .store_ref(orig_msg) ;; information needed by the contract
+  .store_ref(orig_msg) ;; information that will be returned to this contract 
   .store_ref(link) ;; link
 .end_cell();
 var msg = begin_cell()
@@ -99,7 +99,7 @@ Example of a transaction to retrieve data from a link:
 var msg_body = begin_cell()
   .store_uint(50, 32) ;; operation code to create a job
   .store_uint(0, 64)
-  .store_ref(orig_msg) ;; information needed by the contract
+  .store_ref(orig_msg) ;; information that will be returned to this contract 
   .store_ref(link) ;; link
  .end_cell();
 ```
